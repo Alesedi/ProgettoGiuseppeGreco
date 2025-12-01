@@ -1,0 +1,132 @@
+/* Tema SoleDomus: predominanza bianco + blu */
+:root{
+  --sd-blue-900: #0b3d91; /* navy blu */
+  --sd-blue-700: #1e56c6; /* blu principale */
+  --sd-blue-500: #3b82f6; /* blu chiaro */
+  --sd-white: #ffffff;
+  --sd-muted: #6b7280;
+}
+
+body.theme-bg{
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  color: var(--sd-blue-900);
+}
+
+.main-navbar{
+  background: linear-gradient(90deg, var(--sd-blue-900), var(--sd-blue-700));
+  box-shadow: 0 2px 6px rgba(11,61,145,0.12);
+}
+
+.main-navbar .nav-link{
+  color: rgba(255,255,255,0.95) !important;
+}
+
+.site-main{
+  padding-top: 24px;
+}
+
+.card-sd{
+  border: 1px solid #e6eefc;
+  border-radius: 12px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.card-sd:hover{ transform: translateY(-6px); box-shadow: 0 8px 18px rgba(11,61,145,0.08); }
+
+.btn-sd{
+  background: var(--sd-blue-700);
+  color: var(--sd-white);
+  border-radius: 8px;
+  border: none;
+}
+.btn-sd:active, .btn-sd:focus{ outline: none; box-shadow: 0 0 0 4px rgba(59,130,246,0.12); }
+
+.muted { color: var(--sd-muted); }
+
+.footer-bg{ background: linear-gradient(90deg, var(--sd-blue-700), var(--sd-blue-900)); }
+
+/* Utility per cards prodotto */
+.product-image{ width:100%; height:180px; object-fit:cover; border-bottom:1px solid #eef6ff; }
+.product-title{ font-size:1.05rem; font-weight:600; }
+.product-price{ color:var(--sd-blue-700); font-weight:700; }
+
+@media (max-width:576px){
+  .product-image{ height:140px }
+}
+
+/* Auth centered card: full viewport for login/register */
+/* Auth area: background and centering with top margin */
+.auth-main{ background: linear-gradient(180deg, #f4f9ff 0%, #eef6ff 100%); padding:0; min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding-top:6vh; }
+.auth-center{ display:flex; align-items:center; justify-content:center; width:100%; margin-top:18px; }
+.auth-card{ width:100%; max-width:480px; padding:36px; border-radius:18px; box-shadow: 0 12px 40px rgba(11,61,145,0.08); background: linear-gradient(180deg,#ffffff,#fbfdff); border:1px solid rgba(11,61,145,0.06); }
+/* Stack per login + register */
+.auth-stack{ display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; padding:28px; }
+.auth-card-sm{ padding:16px; max-width:560px; }
+
+/* Nuovi stili input / bottoni per look più moderno */
+.form-control{ border-radius:10px; border:1px solid #e6eefc; padding:10px 12px; }
+.form-control:focus{ box-shadow: 0 6px 20px rgba(59,130,246,0.12); border-color: var(--sd-blue-500); }
+.btn-sd{ background: linear-gradient(90deg,var(--sd-blue-700),var(--sd-blue-500)); color:var(--sd-white); border-radius:10px; padding:10px 16px; font-weight:700; border:none; }
+.btn-sd:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(59,130,246,0.12); }
+.btn-outline-sd{ border:1px solid rgba(255,255,255,0.16); color:var(--sd-blue-900); background:#fff; }
+.btn-sm{ padding:6px 10px; font-size:0.9rem; }
+
+/* Auth background più elegante */
+.auth-main{ background: linear-gradient(180deg, #f4f9ff 0%, #eef6ff 100%); }
+.auth-card{ background: linear-gradient(180deg, #ffffff, #fbfdff); border: 1px solid rgba(11,61,145,0.06); }
+
+/* Link subtle */
+a.small{ color:var(--sd-blue-700); text-decoration:none; }
+a.small:hover{ text-decoration:underline; }
+
+/* Simplified auth layout (cleaned) */
+/* Page background for auth pages */
+.auth-page-bg{ background: linear-gradient(90deg,#2f6be6,#2657c9); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:4vh 2vw; }
+
+/* Centered card container */
+.auth-center{ display:flex; align-items:center; justify-content:center; width:100%; }
+
+/* Compact card */
+.auth-card{ width:100%; max-width:420px; padding:56px !important; border-radius:22px; box-shadow:0 20px 50px rgba(11,61,145,0.12); background:linear-gradient(180deg,#ffffff,#fbfdff); border:3px solid #000 !important; }
+
+/* Spaziatura interna e tipografia per form dentro la card */
+.auth-card h3, .auth-card h4{ margin-top:0; margin-bottom:12px; }
+.auth-card p{ margin-top:0; margin-bottom:14px; }
+.auth-card .form-label{ display:block; margin-bottom:6px; font-weight:600; color:var(--sd-blue-900); font-size:0.95rem; }
+.auth-card .form-control{ padding:14px 16px; border-radius:10px; }
+.auth-card .mb-3{ margin-bottom:16px; }
+.auth-card .d-flex.justify-content-between{ margin-bottom:16px; }
+
+/* Optional: position fixed center if needed */
+.auth-card-centered{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:30; }
+
+/* Auth title (left side) */
+.auth-title-wrapper{ width:100%; text-align:center; margin-bottom:18px; color:#fff; }
+.auth-title{ margin:0; font-weight:800; letter-spacing:1px; font-size:40px; }
+.auth-subtitle{ margin:6px 0 0; color:rgba(255,255,255,0.9); }
+
+/* Ensure auth-center uses flex and allows centered card */
+.auth-center{ width:100%; display:flex; align-items:center; justify-content:center; }
+
+.btn-register{ background: linear-gradient(90deg,#2657c9,#1e56c6); color:#fff; border-radius:10px; padding:12px 14px; display:inline-block; font-weight:700; text-align:center; border:none; box-shadow:0 6px 18px rgba(30,86,198,0.18); }
+.btn-register:hover{ transform:translateY(-2px); filter:brightness(0.98); }
+
+/* Tagline under card */
+.auth-tagline{ color: rgba(255,255,255,0.95); margin-top:18px; text-align:center; font-size:0.9rem; }
+.auth-tagline .muted{ color: rgba(255,255,255,0.85); }
+
+@media (max-width:900px){
+  .auth-page-bg{ padding:6vh 6vw; }
+  .auth-card{ max-width:480px; width:100%; }
+}
+
+/* Centered-mode: hide hero-left and make the right column full-width behind the centered card */
+.auth-hero.centered-mode .hero-left{ display:none !important; }
+.auth-hero.centered-mode .hero-right{ flex:1 1 100%; width:100%; padding:0; }
+.auth-hero.centered-mode{ align-items:stretch; }
+.auth-hero.centered-mode .auth-card-centered{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); }
+
+/* Dashboard hero */
+.dashboard-hero{ position:relative; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:320px; color:#fff; }
+.dashboard-hero .overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,61,145,0.45), rgba(11,61,145,0.6)); }
+.dashboard-hero .content{ position:relative; z-index:2; text-align:center; }
+.dashboard-hero .btn-cta{ background:rgba(255,255,255,0.95); color:var(--sd-blue-900); font-weight:700; border-radius:8px; padding:12px 22px; }
