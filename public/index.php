@@ -14,7 +14,8 @@ require_once __DIR__ . '/../app/Controllers/OrderController.php';
  $route = $_GET['route'] ?? '';
 
 // Se la route non è pubblica e l'utente non è autenticato, forziamo il login
-$publicRoutes = ['login', 'register', 'logout'];
+// Rendiamo pubbliche home, catalogo prodotti e dettaglio prodotto oltre a login/register/logout
+$publicRoutes = ['', 'home', 'products', 'product', 'login', 'register', 'logout'];
 if (!in_array($route, $publicRoutes) && empty($_SESSION['user_id'])) {
     header('Location: /index.php?route=login');
     exit;

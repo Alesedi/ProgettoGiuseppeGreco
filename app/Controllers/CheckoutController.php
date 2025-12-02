@@ -7,7 +7,7 @@ class CheckoutController
     protected static function ensureAuth()
     {
         if (empty($_SESSION['user_id'])) {
-            header('Location: /public/index.php?route=login');
+            header('Location: /index.php?route=login');
             exit;
         }
     }
@@ -29,7 +29,7 @@ class CheckoutController
         $pdo = Database::getConnection();
         $items = Cart::itemsForUser($userId);
         if (!$items) {
-            header('Location: /public/index.php?route=cart');
+            header('Location: /index.php?route=cart');
             exit;
         }
         // Collect shipping and payment
@@ -94,7 +94,7 @@ class CheckoutController
             Cart::clear($userId);
 
             $pdo->commit();
-            header('Location: /public/index.php?route=order_confirmation&id=' . $orderId);
+            header('Location: /index.php?route=order_confirmation&id=' . $orderId);
             exit;
         } catch (Exception $e) {
             $pdo->rollBack();

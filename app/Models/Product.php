@@ -30,4 +30,15 @@ class Product
         $stmt->execute(['pid' => $productId]);
         return $stmt->fetchAll();
     }
+
+    public static function getAll(?int $limit = null)
+    {
+        $pdo = Database::getConnection();
+        $sql = 'SELECT * FROM products ORDER BY created_at DESC';
+        if ($limit) {
+            $sql .= ' LIMIT ' . (int)$limit;
+        }
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll();
+    }
 }
