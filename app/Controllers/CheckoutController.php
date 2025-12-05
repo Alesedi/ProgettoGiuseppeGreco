@@ -81,14 +81,64 @@ class CheckoutController
                 $stmtItem->execute(['oid' => $orderId, 'pid' => $it['product_id'], 'poid' => $it['product_option_id'], 'q' => $it['quantity'], 'unit' => $it['unit_price'], 'sub' => $sub]);
             }
 
-            // payment (simulate)
+            // save card metadata (no CVV) BEFORE payment
             $last4 = substr($card_number, -4);
-            $stmt = $pdo->prepare('INSERT INTO payments (order_id, amount, method, status, transaction_ref) VALUES (:oid,:amt,:m,:s,:t)');
-            $stmt->execute(['oid' => $orderId, 'amt' => $total, 'm' => 'card', 's' => 'ok', 't' => 'TX' . time()]);
-
-            // optionally save card metadata (no CVV)
             $stmt = $pdo->prepare('INSERT INTO payment_cards (user_id, cardholder_name, card_brand, card_last4, exp_month, exp_year) VALUES (:uid,:cn,:brand,:last4,:m,:y)');
             $stmt->execute(['uid' => $userId, 'cn' => $card_name, 'brand' => null, 'last4' => $last4, 'm' => $exp_month, 'y' => $exp_year]);
+            $cardId = $pdo->lastInsertId();
+
+            // payment (simulate) - now includes card reference
+            $stmt = $pdo->prepare('INSERT INTO payments (order_id, payment_card_id, amount, method, status, transaction_ref) VALUES (:oid,:cid,:amt,:m,:s,:t)');
+            $stmt->execute(['oid' => $orderId, 'cid' => $cardId, 'amt' => $total, 'm' => 'card', 's' => 'ok', 't' => 'TX' . time()]);
+
+            // populate purchase_history table for easy reporting
+            require_once __DIR__ . '/../Models/User.php';
+            require_once __DIR__ . '/../Models/Product.php';
+            $user = User::getById($userId);
+            $stmtHistory = $pdo->prepare('
+                INSERT INTO purchase_history (
+                    order_id, user_id, user_email, user_name,
+                    product_id, product_name, product_sku,
+                    quantity, unit_price, subtotal, order_total,
+                    payment_method, payment_status,
+                    card_id, card_last4, cardholder_name,
+                    shipping_city, shipping_country,
+                    order_status, order_date
+                ) VALUES (
+                    :oid, :uid, :email, :name,
+                    :pid, :pname, :sku,
+                    :qty, :unit, :sub, :total,
+                    :method, :pstatus,
+                    :cid, :last4, :cname,
+                    :city, :country,
+                    :status, NOW()
+                )
+            ');
+            
+            foreach ($items as $it) {
+                $product = Product::find($it['product_id']);
+                $stmtHistory->execute([
+                    'oid' => $orderId,
+                    'uid' => $userId,
+                    'email' => $user['email'],
+                    'name' => $user['full_name'],
+                    'pid' => $it['product_id'],
+                    'pname' => $product['name'],
+                    'sku' => $product['sku'],
+                    'qty' => $it['quantity'],
+                    'unit' => $it['unit_price'],
+                    'sub' => $it['unit_price'] * $it['quantity'],
+                    'total' => $total,
+                    'method' => 'card',
+                    'pstatus' => 'ok',
+                    'cid' => $cardId,
+                    'last4' => $last4,
+                    'cname' => $card_name,
+                    'city' => $city,
+                    'country' => 'Italy',
+                    'status' => 'paid'
+                ]);
+            }
 
             // clear cart
             Cart::clear($userId);

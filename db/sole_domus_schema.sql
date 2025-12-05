@@ -103,12 +103,14 @@ CREATE TABLE `order_items` (
 CREATE TABLE `payments` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `order_id` INT NOT NULL,
+  `payment_card_id` INT DEFAULT NULL,
   `amount` DECIMAL(12,2) NOT NULL,
   `method` VARCHAR(50) DEFAULT 'card',
   `status` VARCHAR(50) DEFAULT 'initiated',
   `transaction_ref` VARCHAR(255) DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`payment_card_id`) REFERENCES `payment_cards`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `payment_cards` (
@@ -124,10 +126,45 @@ CREATE TABLE `payment_cards` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Tabella fisica per storico acquisti (invece di vista)
+CREATE TABLE `purchase_history` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `order_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `user_email` VARCHAR(255),
+  `user_name` VARCHAR(255),
+  `product_id` INT NOT NULL,
+  `product_name` VARCHAR(255),
+  `product_sku` VARCHAR(100),
+  `quantity` INT NOT NULL,
+  `unit_price` DECIMAL(10,2) NOT NULL,
+  `subtotal` DECIMAL(12,2) NOT NULL,
+  `order_total` DECIMAL(12,2),
+  `payment_method` VARCHAR(50),
+  `payment_status` VARCHAR(50),
+  `card_id` INT DEFAULT NULL,
+  `card_last4` VARCHAR(4),
+  `cardholder_name` VARCHAR(255),
+  `shipping_city` VARCHAR(100),
+  `shipping_country` VARCHAR(100),
+  `order_status` VARCHAR(50),
+  `order_date` DATETIME,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Indici utili
 CREATE INDEX idx_products_price ON `products`(`price`);
 CREATE INDEX idx_orders_user ON `orders`(`user_id`);
+CREATE INDEX idx_payments_card ON `payments`(`payment_card_id`);
+CREATE INDEX idx_purchase_order ON `purchase_history`(`order_id`);
+CREATE INDEX idx_purchase_user ON `purchase_history`(`user_id`);
+CREATE INDEX idx_purchase_product ON `purchase_history`(`product_id`);
+CREATE INDEX idx_purchase_card ON `purchase_history`(`card_last4`);
+CREATE INDEX idx_purchase_date ON `purchase_history`(`order_date`);
 
 -- Nota: per DB Designer 4 incollare questo SQL o importarlo tramite Reverse Engineer.

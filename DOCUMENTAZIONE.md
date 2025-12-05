@@ -425,12 +425,14 @@ CREATE TABLE order_items (
 CREATE TABLE payments (
   id INT PRIMARY KEY AUTO_INCREMENT,
   order_id INT NOT NULL,
+  payment_card_id INT DEFAULT NULL,  -- NEW: riferimento alla carta usata
   amount DECIMAL(10,2),
   method VARCHAR(50),           -- 'card', 'paypal', etc.
   status VARCHAR(50),            -- 'ok', 'failed', 'pending'
   transaction_ref VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (order_id) REFERENCES orders(id)
+  FOREIGN KEY (order_id) REFERENCES orders(id),
+  FOREIGN KEY (payment_card_id) REFERENCES payment_cards(id) ON DELETE SET NULL
 );
 ```
 
@@ -449,6 +451,55 @@ CREATE TABLE payment_cards (
 );
 ```
 
+#### `purchase_summary` (Vista Riepilogativa)
+```sql
+-- Vista SQL per query rapide: unisce ordini, prodotti, utenti e carte
+CREATE VIEW purchase_summary AS
+SELECT 
+  o.id AS order_id,
+  o.user_id,
+  u.email AS user_email,
+  u.full_name AS user_name,
+  o.created_at AS order_date,
+  o.status AS order_status,
+  o.total_amount AS order_total,
+  oi.product_id,
+  p.name AS product_name,
+  p.sku AS product_sku,
+  oi.quantity,
+  oi.unit_price,
+  oi.subtotal,
+  pay.method AS payment_method,
+  pay.status AS payment_status,
+  pc.card_last4,
+  pc.cardholder_name,
+  a.city AS shipping_city
+FROM orders o
+JOIN users u ON o.user_id = u.id
+JOIN order_items oi ON o.id = oi.order_id
+JOIN products p ON oi.product_id = p.id
+LEFT JOIN payments pay ON o.id = pay.order_id
+LEFT JOIN payment_cards pc ON pay.payment_card_id = pc.id
+LEFT JOIN addresses a ON o.address_id = a.id;
+```
+
+**Esempi di utilizzo**:
+```sql
+-- Tutti gli acquisti di un utente
+SELECT * FROM purchase_summary WHERE user_id = 1;
+
+-- Dettagli di un ordine specifico
+SELECT * FROM purchase_summary WHERE order_id = 5;
+
+-- Acquisti con una specifica carta
+SELECT * FROM purchase_summary WHERE card_last4 = '1234';
+
+-- Totale speso per prodotto
+SELECT product_name, SUM(subtotal) as total_revenue 
+FROM purchase_summary 
+GROUP BY product_id, product_name;
+```
+
 ### Relazioni Database
 
 ```
@@ -463,13 +514,19 @@ users
   │     │     ├── products (N:1)
   │     │     └── product_options (N:1)
   │     └── payments (1:N)
+  │           └── payment_cards (N:1) ← NEW: traccia carta usata
   └── payment_cards (1:N)
 
 products
   ├── product_options (1:N)
   ├── cart_items (1:N)
   └── order_items (1:N)
+
+payment_cards
+  └── payments (1:N) ← NEW: collegamento a pagamenti
 ```
+
+**Vista Riepilogativa**: `purchase_summary` unisce tutte le relazioni per query semplificate
 
 ---
 
@@ -546,6 +603,7 @@ Lavoro Giuseppe Greco/
 │   ├── verify_database_structure.php # Verifica schema DB
 │   ├── generate_placeholder_images.php # Generazione SVG placeholder
 │   ├── fix_image_paths.php           # Correzione path immagini
+│   ├── add_purchase_tracking.php     # Aggiunta tracciamento carta e vista riepilogativa
 │   ├── install_php_windows.ps1       # Script installazione PHP
 │   └── add_php_to_path.ps1           # Aggiunta PHP a PATH
 │
@@ -604,7 +662,16 @@ Lavoro Giuseppe Greco/
    php scripts/setup_products.php
    ```
 
-4. **Verifica struttura**:
+4. **Aggiungi tracciamento acquisti** (nuova feature):
+   ```powershell
+   php scripts/add_purchase_tracking.php
+   ```
+   Questo script:
+   - Aggiunge colonna `payment_card_id` alla tabella `payments`
+   - Crea vista SQL `purchase_summary` per query rapide
+   - Collega ogni pagamento alla carta utilizzata
+
+5. **Verifica struttura**:
    ```powershell
    php scripts/verify_database_structure.php
    ```
@@ -662,6 +729,8 @@ php -S 0.0.0.0:8000 -t public
 - [x] Gestione ordini
 - [x] Conferma ordine
 - [x] Database relazionale completo
+- [x] **Tracciamento carta nei pagamenti** (payment_card_id in payments)
+- [x] **Vista riepilogativa acquisti** (purchase_summary con user, prodotto, quantità, carta)
 - [x] 9 prodotti categorizzati (Monocristallino, Bifacciale, Flessibile)
 - [x] Immagini SVG placeholder per categorie
 - [x] Design responsive Bootstrap 5
@@ -795,9 +864,39 @@ INSERT INTO users (email, password_hash, full_name) VALUES
 2. Visita catalogo → products table (query)
 3. Aggiunge prodotti → carts + cart_items tables
 4. Procede al checkout → addresses table (nuovo indirizzo)
-5. Completa pagamento → orders + order_items + payments tables
-6. Carrello svuotato → DELETE cart_items
-7. Visualizza conferma → SELECT orders JOIN order_items
+5. Inserisce dati carta → payment_cards table (salva prima il pagamento)
+6. Completa pagamento → payments table (con payment_card_id) + orders + order_items
+7. Carrello svuotato → DELETE cart_items
+8. Visualizza conferma → SELECT orders JOIN order_items
+9. Query riepilogativa → SELECT * FROM purchase_summary WHERE order_id = X
+```
+
+### Query Riepilogative Utili
+
+```sql
+-- Tutti gli acquisti di un utente con dettagli carta
+SELECT * FROM purchase_summary WHERE user_id = 1;
+
+-- Riepilogo ordine specifico
+SELECT 
+  order_id, user_name, product_name, quantity, 
+  subtotal, card_last4, order_date 
+FROM purchase_summary 
+WHERE order_id = 5;
+
+-- Totale speso per prodotto
+SELECT 
+  product_name, 
+  SUM(quantity) as units_sold,
+  SUM(subtotal) as total_revenue 
+FROM purchase_summary 
+GROUP BY product_id, product_name 
+ORDER BY total_revenue DESC;
+
+-- Acquisti con una carta specifica
+SELECT * FROM purchase_summary 
+WHERE card_last4 = '1234' 
+ORDER BY order_date DESC;
 ```
 
 ---
